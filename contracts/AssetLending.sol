@@ -2,14 +2,13 @@ pragma solidity ^0.4.0;
 contract AssetLending{
     event assetAdded(address owner,uint assetId,uint rent);
     event ownershipTransfered(uint assetId,address by,address to);
-
     address owner;
     
     function AssetLending(){                
         owner=msg.sender;
     }
     
-    struct asset{                                          //details of asset added to structure
+    struct asset{                                        
         address primaryOwner;
         address secondaryOwner;
         uint assetID;
@@ -17,10 +16,9 @@ contract AssetLending{
         uint rent;
     }
     
-    mapping (uint=>asset) public assets;                   //mapping is done of assetid with structure 
+    mapping (uint=>asset) public assets;
     mapping (address=>uint) balance;
       mapping (string=>address) userAddress;
-    
     
     function storeAddress(string username,address addr){
         userAddress[username]=addr;
@@ -30,19 +28,19 @@ contract AssetLending{
         return userAddress[username];
     }
     
-    modifier isOwner(){                                    //checks ownership of assetadder is contract owner
+    modifier isOwner(){                                  
         require(msg.sender==owner);
         _;
     }
     
-    modifier uniqueId(uint assetId){                       //checks if the assetid is unique or not
+    modifier uniqueId(uint assetId){                   
         for(uint i=0;i<assetCounter.length;i++){
             require(assetCounter[i]!=assetId);
         }
         _;
     }
     
-    uint[] assetCounter;                                   //maintaining registry of asset Id
+    uint[] assetCounter;                                  
     
     function addAsset(uint assetId,address owner,uint deposit,uint rent) isOwner uniqueId(assetId){
         assets[assetId].primaryOwner=owner;
@@ -55,7 +53,7 @@ contract AssetLending{
         // assetCounter[assetCounter.length-1]=assetId;
         assetCounter.push(assetId);
         
-        assetAdded(msg.sender,assetId,rent);                  //Trigger event
+        assetAdded(msg.sender,assetId,rent);                 
     }
     
     function fetchAssetDetails(uint assetId) returns (address ,address,uint,uint){                 
@@ -63,19 +61,19 @@ contract AssetLending{
     }
     
     modifier onlyOwner(uint assetId){
-        require(assets[assetId].primaryOwner==msg.sender);  //primaryOwner changes secondary ownership
+        require(assets[assetId].primaryOwner==msg.sender); 
         _;
     }
     
-    function transferAssetOwnership(address buyer,uint assetId) isOwner {                //onlyOwner(assetId)
+    function transferAssetOwnership(address buyer,uint assetId) isOwner {               
         assets[assetId].secondaryOwner=buyer;
         ownershipTransfered(assetId,msg.sender,buyer);
-        buyerPaysOwner(buyer,assets[assetId].deposit);      //for making payment transfering to new function
+        buyerPaysOwner(buyer,assets[assetId].deposit);     
     }
     
     function buyerPaysOwner(address buyer,uint deposit){
         if(balance[buyer]>deposit){
-            balance[buyer]-=deposit;                         //sending from buyer to owner(msg.sender)
+            balance[buyer]-=deposit;                       
             balance[msg.sender]+=deposit;
         }
     }
